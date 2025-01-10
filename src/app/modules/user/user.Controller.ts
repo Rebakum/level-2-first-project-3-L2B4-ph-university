@@ -4,7 +4,9 @@ import sendResponse from '../../utils/sendResponse';
 import { UserService } from './user.servicie';
 const createStudent = catchAsync(async (req, res) => {
   const { password, student: studentData } = req.body;
+  // console.log(password, studentData);
   const result = await UserService.createStudentIntoDB(password, studentData);
+  console.log(result);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

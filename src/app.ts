@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express, { Application, Request, Response } from 'express';
+import AppError from './app/Errors/appErrorr';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import notFound from './app/middlewares/notFound';
 import router from './app/routes';
@@ -15,6 +16,7 @@ app.use('/api/v1/', router);
 const test = (req: Request, res: Response) => {
   const a = 10;
   res.send(a);
+  throw new AppError(httpStatus.NOT_FOUND, '');
 };
 app.get('/', test);
 

@@ -1,13 +1,14 @@
 import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 
 const globalErrorHandler: ErrorRequestHandler = (
-  err: Error,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  err: any,
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _next: NextFunction,
+  next: NextFunction,
 ) => {
-  const statusCode = 500; // Standard HTTP status code
+  const statusCode = err.statusCode || 500; // Standard HTTP status code
   const message = err.message || 'Something went wrong';
   return res.status(statusCode).json({
     success: false,

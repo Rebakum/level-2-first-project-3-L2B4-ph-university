@@ -1,4 +1,7 @@
+import httpStatus from 'http-status';
+import mongoose from 'mongoose';
 import { ServerConfig } from '../../config';
+import AppError from '../../Errors/appErrorr';
 import { AcademicSemister } from '../academicSemister/academicSemister.model';
 import { TStudent } from '../student/student.interface';
 import { Student } from '../student/student.model';
@@ -25,16 +28,36 @@ const createStudentIntoDB = async (password: string, payLoad: TStudent) => {
   const admissionSemister = await AcademicSemister.findById(
     payLoad.admisionSemister,
   );
-  userData.id = await generateStudentId(admissionSemister);
-  // create a user
-  const newResult = await User.create(userData);
-  // create a student
-  if (Object.keys(newResult).length) {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    if (!admissionSemister) {
+      throw new AppError(httpStatus.NOT_FOUND, ' admissionSemister not found');
+    }
+    userData.id = await generateStudentId(admissionSemister);
+    // create a user{transaction-1}
+    const newUser = await User.create([userData], { session });
+    // create a student
+    if (!newUser?.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, ' Filed to create user');
+    }
     //set id, id as user
-    payLoad.id = newResult.id;
-    payLoad.user = newResult._id; // reference id
-    const newStudent = await Student.create(payLoad);
+    payLoad.id = newUser[0].id;
+    payLoad.user = newUser[0]._id; // reference id
+
+    // create a student{transaction-2}
+    const newStudent = await Student.create([payLoad], { session });
+    if (!newStudent.length) {
+      throw new AppError(httpStatus.BAD_REQUEST, ' Filed to create student');
+    }
+    await session.commitTransaction();
+    await session.endSession();
     return newStudent;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (err) {
+    await session.abortTransaction();
+    await session.endSession();
+    throw new Error('Filed to new create student');
   }
 };
 

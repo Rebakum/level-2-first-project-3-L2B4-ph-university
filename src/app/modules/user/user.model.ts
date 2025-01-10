@@ -49,4 +49,12 @@ userSchema.post('save', function (doc, next) {
   doc.password = ' ';
   next();
 });
+userSchema.pre('aggregate', function (next) {
+  this.pipeline().unshift({ $match: { isDeleted: { $ne: true } } });
+  next();
+});
+userSchema.statics.isUserExists = async function (id: string) {
+  const existingUser = await User.findOne({ id });
+  return existingUser;
+};
 export const User = model<IUser>('User', userSchema);

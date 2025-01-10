@@ -1,5 +1,8 @@
 import { model, Schema } from 'mongoose';
+import AppError from '../../Errors/appErrorr';
 import { TAcademicSemister } from './academicSemister.interface';
+
+import httpStatus from 'http-status';
 import {
   AcademicSemiterCode,
   AcademicSemiterName,
@@ -44,7 +47,7 @@ academicSemisterSchema.pre('save', async function (next) {
     name: this.name,
   });
   if (isSemesterExists) {
-    throw new Error('Semeter is already exists!');
+    throw new AppError(httpStatus.NOT_FOUND, 'Semeter is already exists!');
   }
   next();
 });

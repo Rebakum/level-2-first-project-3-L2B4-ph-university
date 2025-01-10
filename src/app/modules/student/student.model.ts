@@ -100,6 +100,7 @@ const localGuardianSchema = new Schema<TLocalGuardian>({
 });
 
 // Main Student Schema
+
 const studentSchema = new Schema<TStudent, TStudentModel>(
   {
     id: { type: String, required: [true, 'Id is required'], unique: true },
@@ -151,10 +152,17 @@ const studentSchema = new Schema<TStudent, TStudentModel>(
         validator: (value: string) => validator.isURL(value),
         message: '{VALUE} is not a valid URL',
       },
-      admisionSemister: {
-        type: Schema.Types.ObjectId,
-        ref: 'AcademicSemister',
-      },
+    },
+
+    admisionSemister: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicSemister',
+      required: true,
+    },
+    academicDepartment: {
+      type: Schema.Types.ObjectId,
+      ref: 'AcademicDepartment',
+      required: true,
     },
 
     isDeleted: {
@@ -170,6 +178,7 @@ const studentSchema = new Schema<TStudent, TStudentModel>(
     },
   },
 );
+
 // virtual
 studentSchema.virtual('fullName').get(function () {
   return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
