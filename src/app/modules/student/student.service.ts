@@ -5,8 +5,34 @@ import { User } from '../user/user.model';
 import { TStudent } from './student.interface';
 import { Student } from './student.model';
 
-const getAllStudentFromDB = async () => {
-  const result = await Student.find()
+const getAllStudentFromDB = async (query: Record<string, unknown>) => {
+  // {email: {$regex : query.searchTerm, $options: i}}
+  // {preasentAddress: {$regex : query.searchTerm, $options: i}}
+  // {'name.firstName: {$regex : query.searchTerm, $options: i}}
+  console.log('base query', query);
+  const queryObj = { ...query }; // copy
+
+  const studentSearchableFields = [
+    'email',
+    'name.firstName',
+    'preasentAddress',
+  ];
+  let searchTerm = '';
+  if (query?.searchTerm) {
+    searchTerm = query?.searchTerm as string;
+  }
+  const searchQuery = Student.find({
+    $or: studentSearchableFields.map((field) => ({
+      [field]: { $regex: searchTerm, $options: 'i' },
+    })),
+  });
+  // filtering
+  const excludaFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+  excludaFields.forEach((el) => delete queryObj[el]);
+  console.log({ query }, { queryObj });
+
+  const filterQueery = searchQuery
+    .find(queryObj)
     .populate('admisionSemister')
     .populate({
       path: 'academicDepartment',
@@ -14,7 +40,38 @@ const getAllStudentFromDB = async () => {
         path: 'academicFaculty',
       },
     });
-  return result;
+
+  let sort = 'createdAt';
+  if (query.sort) {
+    sort = query.sort as string;
+  }
+  const sortQuery = filterQueery.sort(sort);
+
+  let page = 1;
+  let limit = 1;
+  let skip = 0;
+  if (query.limit) {
+    limit = Number(query.limit);
+  }
+  if (query.page) {
+    page = Number(query.page);
+    skip = (page - 1) * limit;
+  }
+  const pagenatequery = sortQuery.skip(skip);
+
+  const limitQuery = pagenatequery.limit(limit);
+
+  // field limiting
+
+  let fields = '-_v';
+  //  fields: 'name,email' ata k
+  //  fields: 'name email' emon korte hobe
+  if (query.fields) {
+    fields = (query.fields as string).split(',').join(' ');
+    console.log({ fields });
+  }
+  const fieldsQuery = await limitQuery.select(fields);
+  return fieldsQuery;
 };
 
 const getSingleStudentFromDB = async (id: string) => {
@@ -55,12 +112,11 @@ const updatedStudentIntoDB = async (id: string, payLoad: Partial<TStudent>) => {
       modifiedUpdatedData[`localGuardian.${key}`] = value;
   }
 
-  console.log(modifiedUpdatedData);
   const result = await Student.findOneAndUpdate({ id }, modifiedUpdatedData, {
     new: true,
     runValidators: true,
   });
-  console.log(result);
+
   if (!result) {
     throw new AppError(httpStatus.NOT_FOUND, 'Student not found for update');
   }

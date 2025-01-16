@@ -14,7 +14,7 @@ const findLastStudentId = async () => {
       createdAt: -1,
     })
     .lean();
-  return lastStudent?.id ? lastStudent.id.substring(6) : undefined;
+  return lastStudent?.id ? lastStudent.id : undefined;
 };
 //year Semister code 4 digit number
 export const generateStudentId = async (payLoad: TAcademicSemister) => {

@@ -13,9 +13,9 @@ app.use(cors());
 //api/v1/students/create-student
 app.use('/api/v1/', router);
 
-const test = (req: Request, res: Response) => {
-  const a = 10;
-  res.send(a);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const test = async (req: Request, res: Response) => {
+  Promise.reject();
   throw new AppError(httpStatus.NOT_FOUND, '');
 };
 app.get('/', test);

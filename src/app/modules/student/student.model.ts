@@ -1,5 +1,8 @@
 import { Schema, model } from 'mongoose';
 import validator from 'validator';
+
+import httpStatus from 'http-status';
+import AppError from './../../Errors/appErrorr';
 import {
   TGuardian,
   TLocalGuardian,
@@ -181,7 +184,7 @@ const studentSchema = new Schema<TStudent, TStudentModel>(
 
 // virtual
 studentSchema.virtual('fullName').get(function () {
-  return `${this.name.firstName} ${this.name.middleName} ${this.name.lastName}`;
+  return `${this?.name?.firstName} ${this?.name?.middleName} ${this?.name?.lastName}`;
 });
 
 //Query middleware
@@ -206,4 +209,15 @@ studentSchema.statics.isUserExists = async function (id: string) {
   return existingUser;
 };
 
+//exis student
+studentSchema.pre('save', async function (next) {
+  const isStudentExist = await Student.findOne({
+    $or: [{ id: this.id }, { email: this.email }],
+  });
+
+  if (isStudentExist) {
+    throw new AppError(httpStatus.CONFLICT, 'This student already exists');
+  }
+  next();
+});
 export const Student = model<TStudent, TStudentModel>('Student', studentSchema);

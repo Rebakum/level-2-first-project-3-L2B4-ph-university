@@ -28,6 +28,7 @@ const createStudentIntoDB = async (password: string, payLoad: TStudent) => {
   const admissionSemister = await AcademicSemister.findById(
     payLoad.admisionSemister,
   );
+  console.log(admissionSemister);
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
@@ -35,6 +36,7 @@ const createStudentIntoDB = async (password: string, payLoad: TStudent) => {
       throw new AppError(httpStatus.NOT_FOUND, ' admissionSemister not found');
     }
     userData.id = await generateStudentId(admissionSemister);
+    console.log(userData.id);
     // create a user{transaction-1}
     const newUser = await User.create([userData], { session });
     // create a student
@@ -53,11 +55,11 @@ const createStudentIntoDB = async (password: string, payLoad: TStudent) => {
     await session.commitTransaction();
     await session.endSession();
     return newStudent;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (err) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
     await session.abortTransaction();
     await session.endSession();
-    throw new Error('Filed to new create student');
+    throw new Error(err);
   }
 };
 
