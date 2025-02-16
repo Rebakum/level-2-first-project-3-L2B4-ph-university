@@ -4,22 +4,22 @@ import { TAcademicSemister } from './academicSemister.interface';
 
 import httpStatus from 'http-status';
 import {
-  AcademicSemiterCode,
-  AcademicSemiterName,
+  AcademicSemisterCode,
+  AcademicSemisterName,
   Months,
-} from './academicSemiter.constance';
+} from './academicSemister.constance';
 
 const academicSemisterSchema = new Schema<TAcademicSemister>(
   {
     name: {
       type: String,
       required: true,
-      enum: AcademicSemiterName,
+      enum: AcademicSemisterName,
     },
     code: {
       type: String,
       required: true,
-      enum: AcademicSemiterCode,
+      enum: AcademicSemisterCode,
     },
     year: {
       type: String,

@@ -1,10 +1,10 @@
 import httpStatus from 'http-status';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import { AcademicSemiterServices } from './academicSemister.service';
+import { AcademicSemisterServices } from './academicSemister.service';
 
 const createAcademicSemister = catchAsync(async (req, res) => {
-  const result = await AcademicSemiterServices.createAcademicSemisterIntoDB(
+  const result = await AcademicSemisterServices.createAcademicSemisterIntoDB(
     req.body,
   );
   sendResponse(res, {
@@ -16,7 +16,7 @@ const createAcademicSemister = catchAsync(async (req, res) => {
 });
 
 const getAllAcademicSemisters = catchAsync(async (req, res) => {
-  const result = await AcademicSemiterServices.getAllAcademicSemisterFromDB();
+  const result = await AcademicSemisterServices.getAllAcademicSemisterFromDB();
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -27,7 +27,7 @@ const getAllAcademicSemisters = catchAsync(async (req, res) => {
 const getSingleAcademicSemisters = catchAsync(async (req, res) => {
   const { semisterId } = req.params;
   const result =
-    await AcademicSemiterServices.getSingleAcademicSemisterFromDB(semisterId);
+    await AcademicSemisterServices.getSingleAcademicSemisterFromDB(semisterId);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -37,7 +37,7 @@ const getSingleAcademicSemisters = catchAsync(async (req, res) => {
 });
 const updateAcademicSemisters = catchAsync(async (req, res) => {
   const { semisterId } = req.params;
-  const result = await AcademicSemiterServices.updateAcademicSemisterIntoDB(
+  const result = await AcademicSemisterServices.updateAcademicSemisterIntoDB(
     semisterId,
     req.body,
   );

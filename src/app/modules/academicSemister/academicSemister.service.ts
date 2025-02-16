@@ -1,11 +1,12 @@
 import httpStatus from 'http-status';
 import AppError from './../../Errors/appErrorr';
+
+import { academicSemisterNameCodeMaper } from './academicSemister.constance';
 import { TAcademicSemister } from './academicSemister.interface';
 import { AcademicSemister } from './academicSemister.model';
-import { academicSeisterNameCodeMaper } from './academicSemiter.constance';
 
 const createAcademicSemisterIntoDB = async (payLoad: TAcademicSemister) => {
-  if (academicSeisterNameCodeMaper[payLoad.name] !== payLoad.code) {
+  if (academicSemisterNameCodeMaper[payLoad.name] !== payLoad.code) {
     throw new AppError(httpStatus.NOT_FOUND, 'Invalid Semister Code');
   }
 
@@ -28,7 +29,7 @@ const updateAcademicSemisterIntoDB = async (
   if (
     payLoad.name &&
     payLoad.code &&
-    academicSeisterNameCodeMaper[payLoad.name] !== payLoad.code
+    academicSemisterNameCodeMaper[payLoad.name] !== payLoad.code
   ) {
     throw new AppError(httpStatus.NOT_FOUND, 'Invalid Semester Code');
   }
@@ -41,7 +42,7 @@ const updateAcademicSemisterIntoDB = async (
   return result;
 };
 
-export const AcademicSemiterServices = {
+export const AcademicSemisterServices = {
   createAcademicSemisterIntoDB,
   getAllAcademicSemisterFromDB,
   getSingleAcademicSemisterFromDB,
