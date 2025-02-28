@@ -66,7 +66,7 @@ const deleteAdminFromDB = async (id: string) => {
     throw new Error(err.message);
   }
 };
-export const AdmindServices = {
+export const AdminServices = {
   getAllAdminsFromDB,
   getSingleAdminFromDB,
   updateAdminInDB,
