@@ -9,64 +9,8 @@ import { TStudent } from './student.interface';
 import { Student } from './student.model';
 
 const getAllStudentFromDB = async (query: Record<string, unknown>) => {
-  // {email: {$regex : query.searchTerm, $options: i}}
-  // {preasentAddress: {$regex : query.searchTerm, $options: i}}
-  // {'name.firstName: {$regex : query.searchTerm, $options: i}}
   console.log('base query', query);
-  // const queryObj = { ...query }; // copy
-  // const studentSearchableFields = [
-  //   'email',
-  //   'name.firstName',
-  //   'preasentAddress',
-  // ];
-  // let searchTerm = '';
-  // if (query?.searchTerm) {
-  //   searchTerm = query?.searchTerm as string;
-  // }
-  // const searchQuery = Student.find({
-  //   $or: studentSearchableFields.map((field) => ({
-  //     [field]: { $regex: searchTerm, $options: 'i' },
-  //   })),
-  // });
-  // filtering
-  // const excludaFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
-  // excludaFields.forEach((el) => delete queryObj[el]);
-  // const filterQueery = searchQuery
-  //   .find(queryObj)
-  //   .populate('admisionSemister')
-  //   .populate({
-  //     path: 'academicDepartment',
-  //     populate: {
-  //       path: 'academicFaculty',
-  //     },
-  //   });
-  // let sort = 'createdAt';
-  // if (query.sort) {
-  //   sort = query.sort as string;
-  // }
-  // const sortQuery = filterQueery.sort(sort);
-  // let page = 1;
-  // let limit = 1;
-  // let skip = 0;
-  // if (query.limit) {
-  //   limit = Number(query.limit);
-  // }
-  // if (query.page) {
-  //   page = Number(query.page);
-  //   skip = (page - 1) * limit;
-  // }
-  // const pagenatequery = sortQuery.skip(skip);
-  // const limitQuery = pagenatequery.limit(limit);
-  // field limiting
-  // let fields = '-__v';
-  //  fields: 'name,email' ata k
-  //  fields: 'name email' emon korte hobe
-  // if (query.fields) {
-  //   fields = (query.fields as string).split(',').join(' ');
-  //   console.log({ fields });
-  // }
-  // const fieldsQuery = await limitQuery.select(fields);
-  // return fieldsQuery;
+
   const studentQuery = new QueryBuilder(
     Student.find()
       .populate({
@@ -94,7 +38,7 @@ const getAllStudentFromDB = async (query: Record<string, unknown>) => {
 };
 
 const getSingleStudentFromDB = async (id: string) => {
-  const result = await Student.findOne({ id })
+  const result = await Student.findById(id)
     .populate('admisionSemister')
     .populate({
       path: 'academicDepartment',
@@ -131,7 +75,7 @@ const updatedStudentIntoDB = async (id: string, payLoad: Partial<TStudent>) => {
       modifiedUpdatedData[`localGuardian.${key}`] = value;
   }
 
-  const result = await Student.findOneAndUpdate({ id }, modifiedUpdatedData, {
+  const result = await Student.findByIdAndUpdate(id, modifiedUpdatedData, {
     new: true,
     runValidators: true,
   });
@@ -145,35 +89,42 @@ const updatedStudentIntoDB = async (id: string, payLoad: Partial<TStudent>) => {
 // for delete
 const deletedStudentFromDB = async (id: string) => {
   const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    session.startTransaction();
-
-    const deletedStudent = await Student.findOneAndUpdate(
-      { id },
+    const deletedStudent = await Student.findByIdAndUpdate(
+      id,
       { isDeleted: true },
       { new: true, session },
     );
+
     if (!deletedStudent) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Filed to deleted student');
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete student');
     }
-    const deletedUser = await User.findOneAndUpdate(
-      { id },
+
+    const deletedUser = await User.findByIdAndUpdate(
+      id,
       { isDeleted: true },
       { new: true, session },
     );
-    if (!deletedUser) {
-      throw new AppError(httpStatus.BAD_REQUEST, 'Filed to deleted user');
-    }
-    await session.commitTransaction();
-    await session.endSession();
 
-    return deletedStudent;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  } catch (err) {
+    if (!deletedUser) {
+      throw new AppError(httpStatus.BAD_REQUEST, 'Failed to delete user');
+    }
+
+    await session.commitTransaction();
+  } catch (error) {
     await session.abortTransaction();
+    console.error('Error deleting student:', error);
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      'Failed to delete student',
+    );
+  } finally {
     await session.endSession();
-    throw new Error('Filed  deleted student');
   }
+
+  return { message: 'Student deleted successfully' };
 };
 
 export const StudentServices = {
